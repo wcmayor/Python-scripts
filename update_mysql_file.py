@@ -14,20 +14,20 @@ args=parser.parse_args()
 session = boto3.session.Session()
 client = session.client(service_name='secretsmanager', region_name=args.region)
 
-secrets = json.loads(client.get_secret_value(args.secret_name)["SecretString"])
+secrets = json.loads(client.get_secret_value(SecretId=args.secret_name)["SecretString"])
 
 f = open("/root/mysql-init.sql", "a")
 
-f.write("DELETE FROM mysql.user WHERE User='';")
-f.write("DELETE FROM mysql.db WHERE Db='test' OR Db='test\\_%';")
-f.write("DELETE FROM mysql.user WHERE User='root' AND Host NOT IN ('localhost', '127.0.0.1', '::1');")
+f.write("DELETE FROM mysql.user WHERE User='';\n")
+f.write("DELETE FROM mysql.db WHERE Db='test' OR Db='test\\_%';\n")
+f.write("DELETE FROM mysql.user WHERE User='root' AND Host NOT IN ('localhost', '127.0.0.1', '::1');\n")
 
 for key, value in secrets.items():
     if key == "apache_insert_password":
-        f.write("create user apache_insert@localhost identified by '" + value + "';")
-        f.write("grant insert, update on apache_logs.* to apache_inser@localhost;")
+        f.write("create user apache_insert@localhost identified by '" + value + "';\n")
+        f.write("grant insert, update on apache_logs.* to apache_inser@localhost;\n")
     if key == "root_password":
-        f.write("UPDATE mysql.user SET Password=PASSWORD('" + value + "') WHERE User='root';")
+        f.write("UPDATE mysql.user SET Password=PASSWORD('" + value + "') WHERE User='root';\n")
 
-f.write("DROP DATABASE IF EXISTS test;")
-f.write("FLUSH PRIVILEGES;")
+f.write("DROP DATABASE IF EXISTS test;\n")
+f.write("FLUSH PRIVILEGES;\n")
